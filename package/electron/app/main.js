@@ -19,7 +19,7 @@ const createWindow = require('./helpers/window');
 const winston = require('winston');
 const packageData = require('fs-jetpack').cwd(app.getAppPath()).read('package.json', 'json');
 
-const tag = '[ArdublocklyElec] ';
+const tag = '[STEMReachBlocklyElec] ';
 
 // Global reference of the window object must be maintain, or the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -59,7 +59,7 @@ app.on('ready', function() {
     mainWindow = createWindow('main', {
         width: 1200,
         height: 765,
-        title: 'Ardublockly',
+        title: 'STEMReach Blockly',
         transparent: false,
         backgroundColor: '#EEEEEE',
         frame: true,
@@ -147,12 +147,12 @@ function setupLogging() {
     var projectRootPath = projectLocator.getProjectRootPath();
     winston.add(winston.transports.File, {
         json: false,
-        filename: projectRootPath + '/ardublockly.log',
+        filename: projectRootPath + '/stemreach_blockly.log',
         maxsize: 10485760,
         maxFiles: 2
     });
-    winston.info(tag + 'Starting Ardublockly version: ' + packageData.version);
-    winston.info(tag + 'Ardublockly root dir: ' + projectRootPath);
+    winston.info(tag + 'Starting STEMReach Blockly version: ' + packageData.version);
+    winston.info(tag + 'STEMReach Blockly root dir: ' + projectRootPath);
 
     // Relevant OS could be win32, linux, darwin
     winston.info(tag + 'OS detected: ' + process.platform);

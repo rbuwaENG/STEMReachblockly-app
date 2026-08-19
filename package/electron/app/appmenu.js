@@ -15,6 +15,7 @@ const MenuItem = electron.MenuItem;
 const BrowserWindow = electron.BrowserWindow;
 
 const server = require('./servermgr.js');
+const packageData = require('fs-jetpack').cwd(app.getAppPath()).read('package.json', 'json');
 
 module.exports.setArdublocklyMenu = function(devMode) {
     if (typeof(devMode)==='undefined') devMode = false;
@@ -41,11 +42,11 @@ module.exports.setArdublocklyMenu = function(devMode) {
 
 var getMacMenuData = function() {
     return {
-        label: 'Ardublockly',
+        label: 'STEMReach Blockly',
         submenu: [
             {
                 label: 'About',
-                click: functionNotImplemented
+                click: showAboutDialog
             }, {
                 type: 'separator'
             }, {
@@ -63,7 +64,7 @@ var getMacMenuData = function() {
             }, {
                 type: 'separator'
             }, {
-                label: 'Hide Ardublockly',
+                label: 'Hide STEMReach Blockly',
                 accelerator: 'Command+H',
                 selector: 'hide:'
             }, {
@@ -337,27 +338,25 @@ var getHelpMenuData = function() {
             }, {
                 label: 'Website',
                 click: function() {
-                    shell.openExternal('http://ardublockly.embeddedlog.com');
+                    shell.openExternal('https://www.stemreach.space/');
                 }
             }, {
                 label: 'Source code',
                 click: function() {
                     shell.openExternal(
-                        'https://github.com/carlosperate/ardublockly');
+                        'https://github.com/rbuwaENG/STEMReachblockly-app');
                 }
             }, {
                 label: 'Report a bug',
                 click: function() {
                     shell.openExternal(
-                        'https://github.com/carlosperate/ardublockly/issues');
+                        'https://github.com/rbuwaENG/STEMReachblockly-app/issues');
                 }
             }, {
                 type: 'separator'
             },  {
                 label: 'About',
-                click: function() {
-                    shell.openExternal('http://localhost:8000/docs/About');
-                }
+                click: showAboutDialog
             }
         ]
     };
@@ -414,6 +413,20 @@ var getDevMenuData = function() {
             }
         ]
     };
+};
+
+var showAboutDialog = function() {
+    dialog.showMessageBox({
+        type: 'info',
+        title: 'About STEMReach Blockly',
+        buttons: ['OK'],
+        message: 'STEMReach Blockly',
+        detail: 'Version: ' + packageData.version + '\n' +
+            'Copyright © 2026 STEMreach and/or its affiliated companies\n' +
+            'Based on Ardublockly by carlosperate ' +
+            '(https://github.com/carlosperate/ardublockly)\n\n' +
+            'https://www.stemreach.space/'
+    });
 };
 
 var functionNotImplemented = function() {

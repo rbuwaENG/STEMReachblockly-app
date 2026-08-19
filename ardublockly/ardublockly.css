@@ -2,7 +2,7 @@
  * @license Licensed under the Apache License, Version 2.0 (the "License"):
  *          http://www.apache.org/licenses/LICENSE-2.0
  *
- * @fileoverview CSS file for the Ardublockly application.
+ * @fileoverview CSS file for the STEMReach Blockly application.
  *
  * There are a lot of '!important' tags in this file as a lot of the rules set
  * here go against the css rules from the Materialize framework.
@@ -37,25 +37,22 @@ body {
 
 
 /*********************/
-/*  Arduino Colours  */
+/*  STEMReach Colours  */
 /*********************/
 .arduino_teal {
-  background-color: #00979C;
+  background-color: #7C3AED;
 }
 .arduino_teal_dark {
-  background-color: #006468;
-  /* background-color: #00878F; from community logo */
+  background-color: #5B21B6;
 }
 .arduino_teal_light {
-  background-color: #62AEB2;
+  background-color: #A78BFA;
 }
 .arduino_orange {
-  background-color: #E47128;
+  background-color: #A21CAF;
 }
 .arduino_yellow {
-  background-color: rgba(255, 204, 51, 1);
-  /* background-color: #FFCC33; */
-  /* background-color: #E5AD24; from community logo */
+  background-color: #C026D3;
 }
 .arduino_brown {
   background-color: #8C7965;
@@ -222,21 +219,21 @@ ul.side-nav li.side-menu-end {
   border-right: 0;
 }
 .ide_output_header_normal {
-  background-color: #006468;
+  background-color: #5B21B6;
   color: #ffffff;
   -moz-transition: background-color 0.6s ease-in;;
   -o-transition: background-color 0.6s ease-in;
   -webkit-transition: background-color 0.6s ease-in;
 }
 .ide_output_header_highlight {
-  background-color: #62AEB2;
+  background-color: #A78BFA;
   color: #ffffff;
   -moz-transition: background-color 0.6s ease-in;;
   -o-transition: background-color 0.6s ease-in;
   -webkit-transition: background-color 0.6s ease-in;
 }
 .ide_output_header_error {
-  background-color: #E47128;
+  background-color: #A21CAF;
   color: #ffffff;
   -moz-transition: background-color 0.6s ease-in;;
   -o-transition: background-color 0.6s ease-in;
@@ -263,12 +260,12 @@ ul.side-nav li.side-menu-end {
 }
 /* IDE output content text formatting */
 #content_ide_output .arduino_dialog_success {
-  color: #00979C;   /* arduino light teal */
+  color: #7C3AED;   /* STEMReach violet */
   font-size: 1.2rem;
   margin: 16px 0px 8px 0px;
 }
 #content_ide_output .arduino_dialog_failure {
-  color: #E47128;   /* arduino orange */
+  color: #A21CAF;   /* STEMReach fuchsia */
   font-size: 1.2rem;
   margin: 16px 0px 8px 0px;
 }
@@ -277,7 +274,7 @@ ul.side-nav li.side-menu-end {
   font-size: 0.9rem;
 }
 #content_ide_output .arduino_dialog_out_error {
-  color: #E47128;   /* arduino orange */
+  color: #A21CAF;   /* STEMReach fuchsia */
   font-size: 0.9rem;
   padding-top: 8px;
   display: block;
@@ -439,7 +436,7 @@ ul.side-nav li.side-menu-end {
   z-index: 5;
 }
 .spinner-orange {
-  border-color: #E47128;
+  border-color: #A21CAF;
 }
 .active .spinner-layer.spinner-orange {
   /* durations: 4 * ARCTIME */
@@ -447,7 +444,7 @@ ul.side-nav li.side-menu-end {
   animation: fill-unfill-rotate 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both, blue-fade-in-out 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both;
 }
 .spinner-dark-teal {
-  border-color: #00878F;
+  border-color: #6D28D9;
 }
 .active .spinner-layer.spinner-dark-teal {
   /* durations: 4 * ARCTIME */
@@ -455,7 +452,7 @@ ul.side-nav li.side-menu-end {
   animation: fill-unfill-rotate 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both, red-fade-in-out 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both;
 }
 .spinner-yellow {
-  border-color: rgba(255, 204, 51, 1);
+  border-color: #C026D3;
 }
 .active .spinner-layer.spinner-yellow {
   /* durations: 4 * ARCTIME */
@@ -463,7 +460,7 @@ ul.side-nav li.side-menu-end {
   animation: fill-unfill-rotate 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both, yellow-fade-in-out 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both;
 }
 .spinner-light-teal {
-  border-color: #62AEB2;
+  border-color: #A78BFA;
 }
 .active .spinner-layer.spinner-light-teal {
   /* durations: 4 * ARCTIME */
@@ -507,15 +504,15 @@ ul.side-nav li.side-menu-end {
 }
 .arduino_dialog_out {}
 .arduino_dialog_out_error {
-  color: #E47128;   /* arduino orange */
+  color: #A21CAF;   /* STEMReach fuchsia */
   padding-top: 25px;
   display: block;
 }
 .arduino_dialog_success {
-  color: #00979C;   /* arduino light teal */
+  color: #7C3AED;   /* STEMReach violet */
 }
 .arduino_dialog_failure {
-  color: #E47128;   /* arduino orange */
+  color: #A21CAF;   /* STEMReach fuchsia */
 }
 
 /* Footer buttons padding */
@@ -621,7 +618,7 @@ ul.side-nav li.side-menu-end {
 
 /* Colours for the new and deleted code highlighting */
 .code_highlight_new {
-  background-color: rgba(255, 204, 51, 0.5); /* Arduino yellow 50% */
+  background-color: rgba(192, 38, 211, 0.5); /* STEMReach fuchsia 50% */
 }
 .code_highlight_deleted {
   background-color: #FDBEBE;
@@ -679,10 +676,10 @@ ul.side-nav li.side-menu-end {
   box-sizing: content-box !important;
 }
 .blocklyTreeSelected {
-  background-color: #E47128 !important;  /* arduino orange */
+  background-color: #A21CAF !important;  /* STEMReach fuchsia */
 }
 .blocklyTreeRow:not(.blocklyTreeSelected):hover {
-  background-color: rgba(255, 204, 51, 1) !important;  /* arduino yellow */
+  background-color: #C026D3 !important;  /* STEMReach light fuchsia */
 }
 .blocklyTreeLabel {
 }
@@ -693,7 +690,7 @@ ul.side-nav li.side-menu-end {
 
 /* Toolbox second column with blocks*/
 .blocklyFlyoutBackground {
-  fill: #DEEEEF !important;
+  fill: #EDE4FB !important;
   fill-opacity: 0.7 !important;
   -webkit-border-radius: 0px 4px 4px 0px !important;
   -moz-border-radius: 0px 4px 4px 0px !important;
@@ -702,7 +699,7 @@ ul.side-nav li.side-menu-end {
 
 /* Blockly scrollbars */
 .blocklyScrollbarKnob {
-  fill: #00878F !important;
+  fill: #6D28D9 !important;
   fill-opacity: 0.7 !important;
 }
 .blocklyScrollbarBackground {
@@ -710,10 +707,10 @@ ul.side-nav li.side-menu-end {
   fill: none !important;
 }
 
-/* Edit select colour to Arduino yellow. (Edited out as already this colour)
+/* Edit select colour to STEMReach fuchsia. (Edited out as already this colour)
 .blocklyHighlightedConnectionPath,
 .blocklySelected>.blocklyPath {
-  stroke: rgba(255, 204, 51, 1) !important;
+  stroke: rgba(192, 38, 211, 1) !important;
 } */
 
 /*********************************/
