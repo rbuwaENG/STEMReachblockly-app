@@ -37,7 +37,7 @@ exe = EXE(pyz,
           exclude_binaries=True,
           name='start',
           debug=False,
-          strip=None,
+          strip=False,
           upx=True,
           console=True)
 
@@ -45,6 +45,6 @@ coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
-               strip=None,
+               strip=False,
                upx=True,
                name='server')
