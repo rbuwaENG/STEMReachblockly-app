@@ -27,6 +27,14 @@ jobs:
     name: Build (${{ matrix.os }})
     needs: test
     runs-on: ${{ matrix.os }}
+    # GitHub's Intel macOS (macos-13) fleet has been shrinking as they move
+    # to Apple Silicon-only runners, and can queue for a very long time (or
+    # never get a runner at all). timeout-minutes turns an indefinite queue
+    # into a hard failure instead of blocking the whole workflow forever;
+    # continue-on-error keeps that macOS leg's failure from blocking the
+    # release job so Windows/Linux artifacts still publish.
+    timeout-minutes: 20
+    continue-on-error: ${{ matrix.platform_arg == 'mac' }}
     strategy:
       fail-fast: false
       matrix:
@@ -36,8 +44,10 @@ jobs:
           # macos-latest runners are Apple Silicon (arm64); electron-prebuilt
           # 1.2.x (this app's ancient Electron pin) never published an
           # arm64 macOS build, so it 404s trying to download one. Pinned to
-          # macos-13 (Intel) until the Electron toolchain itself is
-          # upgraded past that architecture gap.
+          # macos-13 (Intel) since that's what electron-prebuilt can
+          # actually install - a real fix needs the Electron toolchain
+          # upgraded past that architecture gap (see continue-on-error
+          # above for why this leg is allowed to fail/time out for now).
           - os: macos-13
             platform_arg: mac
           - os: ubuntu-latest
