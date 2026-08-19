@@ -9,10 +9,11 @@ from __future__ import unicode_literals, absolute_import, print_function
 import os
 import gc
 import sys
+import socket
 import shutil
 import unittest
 import requests
-from time import sleep
+from time import sleep, time
 # local-packages imports Python 2 and 3 compatibility imports
 from six.moves import _thread as thread
 from six import iteritems
@@ -68,6 +69,20 @@ class ServerTestCase(unittest.TestCase):
         cls.thread_id = thread.start_new_thread(server_thread, ())
         while settings is None:
             sleep(0.01)
+        # `settings` becoming available only means ServerCompilerSettings has
+        # been constructed, not that the HTTP server has finished binding its
+        # socket - wait for that too, or requests fired immediately after
+        # can hit a connection refused race (seen on slower/colder runners).
+        deadline = time() + 10
+        while time() < deadline:
+            try:
+                with socket.create_connection((IP, PORT), timeout=0.5):
+                    break
+            except OSError:
+                sleep(0.05)
+        else:
+            raise Exception('Server did not start listening on %s:%s within '
+                            'the timeout.' % (IP, PORT))
         # Check the settings is a new instance by looking at file path
         if cls.temp_folder not in settings.get_settings_file_path()\
                 or not os.path.isfile(settings.get_settings_file_path()):
