@@ -35,13 +35,18 @@ if __name__ == '__main__':
     if _cmd_options.server and _cmd_options.server.startswith('gevent'):
         import gevent.monkey; gevent.monkey.patch_all()
 
-import base64, cgi, email.utils, functools, hmac, imp, itertools, mimetypes,\
-        os, re, subprocess, sys, tempfile, threading, time, warnings
+import base64, cgi, email.utils, functools, hmac, itertools, mimetypes,\
+        os, re, subprocess, sys, tempfile, threading, time, types, warnings
 
 from datetime import date as datedate, datetime, timedelta
 from tempfile import TemporaryFile
 from traceback import format_exc, print_exc
-from inspect import getargspec
+try:
+    from inspect import getargspec
+except ImportError:
+    # getargspec() was removed in Python 3.11; getfullargspec() is the
+    # closest equivalent (this vendored Bottle predates that rename).
+    from inspect import getfullargspec as getargspec
 from unicodedata import normalize
 
 
@@ -84,7 +89,12 @@ if py3k:
     from urllib.parse import urlencode, quote as urlquote, unquote as urlunquote
     urlunquote = functools.partial(urlunquote, encoding='latin1')
     from http.cookies import SimpleCookie
-    from collections import MutableMapping as DictMixin
+    try:
+        from collections import MutableMapping as DictMixin
+    except ImportError:
+        # The collections.abc ABCs stopped being re-exported from the
+        # collections package itself in Python 3.10.
+        from collections.abc import MutableMapping as DictMixin
     import pickle
     from io import BytesIO
     from configparser import ConfigParser
@@ -1779,7 +1789,7 @@ class _ImportRedirect(object):
         ''' Create a virtual package that redirects imports (see PEP 302). '''
         self.name = name
         self.impmask = impmask
-        self.module = sys.modules.setdefault(name, imp.new_module(name))
+        self.module = sys.modules.setdefault(name, types.ModuleType(name))
         self.module.__dict__.update({'__file__': __file__, '__path__': [],
                                     '__all__': [], '__loader__': self})
         sys.meta_path.append(self)
@@ -3418,11 +3428,18 @@ class StplParser(object):
     _re_cache = {} #: Cache for compiled re patterns
     # This huge pile of voodoo magic splits python code into 8 different tokens.
     # 1: All kinds of python strings (trust me, it works)
-    _re_tok = '((?m)[urbURB]?(?:\'\'(?!\')|""(?!")|\'{6}|"{6}' \
+    # (?m) is hoisted to the very start of the pattern (rather than nested
+    # inside the capturing group, as upstream had it) because Python 3.11+
+    # rejects inline flags that aren't at the start of the expression.
+    _re_tok = '(?m)([urbURB]?(?:\'\'(?!\')|""(?!")|\'{6}|"{6}' \
                '|\'(?:[^\\\\\']|\\\\.)+?\'|"(?:[^\\\\"]|\\\\.)+?"' \
                '|\'{3}(?:[^\\\\]|\\\\.|\\n)+?\'{3}' \
                '|"{3}(?:[^\\\\]|\\\\.|\\n)+?"{3}))'
-    _re_inl = _re_tok.replace('|\\n','') # We re-use this string pattern later
+    # We re-use this string pattern later; the leading (?m) is dropped since
+    # it gets embedded inside another group below, where it would no longer
+    # be at the start of the expression - and this fragment has no ^/$
+    # anchors, so MULTILINE mode makes no difference to it anyway.
+    _re_inl = _re_tok.replace('|\\n','').replace('(?m)', '', 1)
     # 2: Comments (until end of line, but not the newline itself)
     _re_tok += '|(#.*)'
     # 3,4: Open and close grouping tokens

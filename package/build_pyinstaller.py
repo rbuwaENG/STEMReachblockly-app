@@ -143,16 +143,20 @@ def create_shell_file(os_type):
     longer needs a shell script.
     """
     # The script depends on platform
+    # Executable name matches the Electron app's "name" in
+    # package/electron/app/package.json ("stemreach-blockly"), which is what
+    # windows.js/linux.js rename the packaged electron binary to.
     if os_type == "linux":
         shell_text = '#!/bin/bash\n' \
                      'DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )\n' \
                      'echo "[Shell Launch Script] Executing from: $DIR"\n' \
-                     './%s' % os.path.join(exec_folder_name, "ardublockly")
+                     './%s' % os.path.join(exec_folder_name,
+                                           "stemreach-blockly")
         shell_location = os.path.join(project_root_dir, "ardublockly_run.sh")
     elif os_type == "windows":
         shell_text = "@echo off\n" + \
                      "start %s" % os.path.join(exec_folder_name,
-                                               "ardublockly.exe")
+                                               "stemreach-blockly.exe")
         shell_location = os.path.join(project_root_dir, "ardublockly_run.bat")
     else:
         # macOS doesn't need a shell file, any other OS type is unexpected

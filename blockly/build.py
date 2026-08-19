@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python3
 # Compresses the core Blockly files into a single JavaScript file.
 #
 # Copyright 2012 Google Inc.
@@ -20,8 +20,11 @@
 #   blockly_compressed.js
 #   blockly_uncompressed.js
 # The compressed file is a concatenation of all of Blockly's core files which
-# have been run through Google's Closure Compiler.  This is done using the
-# online API (which takes a few seconds and requires an Internet connection).
+# have been run through the Closure Compiler. This is done locally via the
+# google-closure-compiler npm package (invoked through npx), rather than the
+# closure-compiler.appspot.com online API the original script used - that
+# external service is a single point of failure for CI and requires an
+# Internet connection with no offline fallback.
 # The uncompressed file is a script that loads in each of Blockly's core files
 # one by one.  This takes much longer for a browser to load, but is useful
 # when debugging code since line numbers are meaningful and variables haven't
@@ -38,11 +41,12 @@
 #   msg/js/<LANG>.js for every language <LANG> defined in msg/js/<LANG>.json.
 
 import sys
-if sys.version_info[0] != 2:
-  raise Exception("Blockly build only compatible with Python 2.x.\n"
+if sys.version_info[0] != 3:
+  raise Exception("Blockly build only compatible with Python 3.x.\n"
                   "You are using: " + sys.version)
 
-import errno, glob, fnmatch, httplib, json, os, re, subprocess, threading, urllib
+import errno, fnmatch, glob, importlib, os, re, shutil
+import subprocess, tempfile, threading
 
 
 def import_path(fullpath):
@@ -59,7 +63,7 @@ def import_path(fullpath):
   filename, ext = os.path.splitext(filename)
   sys.path.append(path)
   module = __import__(filename)
-  reload(module)  # Might be out of date.
+  importlib.reload(module)  # Might be out of date.
   del sys.path[-1]
   return module
 
@@ -166,7 +170,8 @@ if (isNodeJS) {
 class Gen_compressed(threading.Thread):
   """Generate a JavaScript file that contains all of Blockly's core and all
   required parts of Closure, compiled together.
-  Uses the Closure Compiler's online API.
+  Uses a local Closure Compiler (via the google-closure-compiler npm
+  package, invoked through npx) instead of an online API.
   Runs in a separate thread.
   """
   def __init__(self, search_paths):
@@ -185,140 +190,102 @@ class Gen_compressed(threading.Thread):
 
   def gen_core(self):
     target_filename = "blockly_compressed.js"
-    # Define the parameters for the POST request.
-    params = [
-        ("compilation_level", "SIMPLE_OPTIMIZATIONS"),
-        ("use_closure_library", "true"),
-        ("output_format", "json"),
-        ("output_info", "compiled_code"),
-        ("output_info", "warnings"),
-        ("output_info", "errors"),
-        ("output_info", "statistics"),
-      ]
-
-    # Read in all the source files.
+    # Read in all the source files, including the Closure Library ones the
+    # online-API's "use_closure_library" option used to pull in for us.
     filenames = calcdeps.CalculateDependencies(self.search_paths,
         [os.path.join("core", "blockly.js")])
+    sources = []
     for filename in filenames:
-      # Filter out the Closure files (the compiler will add them).
-      if filename.startswith(os.pardir + os.sep):  # '../'
-        continue
-      f = open(filename)
-      params.append(("js_code", "".join(f.readlines())))
-      f.close()
+      with open(filename, encoding="utf-8") as f:
+        sources.append(f.read())
 
-    self.do_compile(params, target_filename, filenames, [])
+    self.do_compile(sources, target_filename, [])
 
   def gen_blocks(self):
     target_filename = "blocks_compressed.js"
-    # Define the parameters for the POST request.
-    params = [
-        ("compilation_level", "SIMPLE_OPTIMIZATIONS"),
-        ("output_format", "json"),
-        ("output_info", "compiled_code"),
-        ("output_info", "warnings"),
-        ("output_info", "errors"),
-        ("output_info", "statistics"),
-      ]
-
-    # Read in all the source files.
     # Add Blockly.Blocks to be compatible with the compiler.
-    params.append(("js_code", "goog.provide('Blockly.Blocks');"))
-    params.append(("js_code", "goog.provide('Blockly.Types');"))
+    sources = ["goog.provide('Blockly.Blocks');",
+               "goog.provide('Blockly.Types');"]
     filenames = []
     for root, folders, files in os.walk("blocks"):
         for filename in fnmatch.filter(files, "*.js"):
             filenames.append(os.path.join(root, filename))
     for filename in filenames:
-      f = open(filename)
-      params.append(("js_code", "".join(f.readlines())))
-      f.close()
+      with open(filename, encoding="utf-8") as f:
+        sources.append(f.read())
 
     # Remove Blockly.Blocks to be compatible with Blockly.
     remove = ["var Blockly={Blocks:{}};", "Blockly.Types={};"]
-    self.do_compile(params, target_filename, filenames, remove)
+    self.do_compile(sources, target_filename, remove)
 
   def gen_generator(self, language):
     target_filename = language + "_compressed.js"
-    # Define the parameters for the POST request.
-    params = [
-        ("compilation_level", "SIMPLE_OPTIMIZATIONS"),
-        ("output_format", "json"),
-        ("output_info", "compiled_code"),
-        ("output_info", "warnings"),
-        ("output_info", "errors"),
-        ("output_info", "statistics"),
-      ]
-
-    # Read in all the source files.
     # Add Blockly.Generator to be compatible with the compiler.
-    params.append(("js_code", "goog.provide('Blockly.Generator');"))
-    params.append(("js_code", "goog.provide('Blockly.StaticTyping');"))
+    sources = ["goog.provide('Blockly.Generator');",
+               "goog.provide('Blockly.StaticTyping');"]
     filenames = glob.glob(
         os.path.join("generators", language, "*.js"))
     filenames.insert(0, os.path.join("generators", language + ".js"))
     for filename in filenames:
-      f = open(filename)
-      params.append(("js_code", "".join(f.readlines())))
-      f.close()
-    filenames.insert(0, "[goog.provide]")
+      with open(filename, encoding="utf-8") as f:
+        sources.append(f.read())
 
     # Remove Blockly.Generator to be compatible with Blockly.
     remove = ["var Blockly={Generator:{}};", "Blockly.StaticTyping={};"]
-    self.do_compile(params, target_filename, filenames, remove)
+    self.do_compile(sources, target_filename, remove)
 
-  def do_compile(self, params, target_filename, filenames, remove):
-    # Send the request to Google.
-    headers = {"Content-type": "application/x-www-form-urlencoded"}
-    conn = httplib.HTTPSConnection("closure-compiler.appspot.com")
-    conn.request("POST", "/compile", urllib.urlencode(params), headers)
-    response = conn.getresponse()
-    json_str = response.read()
-    conn.close()
+  def do_compile(self, sources, target_filename, remove):
+    tmp_dir = tempfile.mkdtemp(prefix="stemreach_blockly_build_")
+    try:
+      original_b = 0
+      for i, source in enumerate(sources):
+        path = os.path.join(tmp_dir, "input_%03d.js" % i)
+        with open(path, "w", encoding="utf-8") as f:
+          f.write(source)
+        original_b += len(source.encode("utf-8"))
 
-    # Parse the JSON response.
-    json_data = json.loads(json_str)
-
-    def file_lookup(name):
-      if not name.startswith("Input_"):
-        return "???"
-      n = int(name[6:]) - 1
-      return filenames[n]
-
-    if json_data.has_key("serverErrors"):
-      errors = json_data["serverErrors"]
-      for error in errors:
-        print("SERVER ERROR: %s" % target_filename)
-        print(error["error"])
-    elif json_data.has_key("errors"):
-      errors = json_data["errors"]
-      for error in errors:
-        print("FATAL ERROR")
-        print(error["error"])
-        if error["file"]:
-          print("%s at line %d:" % (
-              file_lookup(error["file"]), error["lineno"]))
-          print(error["line"])
-          print((" " * error["charno"]) + "^")
+      out_path = os.path.join(tmp_dir, "out.js")
+      # shutil.which() resolves the platform-specific shim (npx.cmd on
+      # Windows) - passing the bare "npx" name to subprocess without
+      # shell=True fails to find it on Windows.
+      npx_path = shutil.which("npx")
+      if npx_path is None:
+        print("FATAL ERROR: npx not found on PATH. Node.js is required to "
+              "build " + target_filename)
         sys.exit(1)
-    else:
-      if json_data.has_key("warnings"):
-        warnings = json_data["warnings"]
-        for warning in warnings:
-          print("WARNING")
-          print(warning["warning"])
-          if warning["file"]:
-            print("%s at line %d:" % (
-                file_lookup(warning["file"]), warning["lineno"]))
-            print(warning["line"])
-            print((" " * warning["charno"]) + "^")
-        print()
+      # Pinned to a compiler contemporaneous with the vendored Closure
+      # Library snapshot (Jan 2016): current compiler versions hard-error on
+      # this era's bare "goog.define('x.y', val);" calls (they later added a
+      # requirement that the result be assigned to a name), so the latest
+      # compiler can't build this Closure Library at all.
+      # "-p ... --" pins the version explicitly; plain "--yes pkg@version"
+      # fails with "could not determine executable to run" for packages this
+      # old, since npx's auto bin-name inference doesn't handle them.
+      # A single glob (which the compiler resolves itself) is used instead of
+      # one "--js" flag per input file - with hundreds of Closure Library
+      # files, per-file flags blow past Windows' ~8191 char command line
+      # limit ("The command line is too long").
+      cmd = [npx_path, "--yes", "-p", "google-closure-compiler@20180402.0.0",
+             "--", "google-closure-compiler",
+             "--compilation_level", "SIMPLE_OPTIMIZATIONS",
+             "--js_output_file", out_path,
+             "--js", os.path.join(tmp_dir, "*.js")]
+      result = subprocess.run(cmd, capture_output=True, text=True)
 
-      if not json_data.has_key("compiledCode"):
-        print("FATAL ERROR: Compiler did not return compiledCode.")
+      if result.stdout.strip():
+        print(result.stdout)
+      if result.returncode != 0:
+        print("FATAL ERROR compiling %s" % target_filename)
+        print(result.stderr)
         sys.exit(1)
+      if result.stderr.strip():
+        print("WARNING(S) compiling %s" % target_filename)
+        print(result.stderr)
 
-      code = HEADER + "\n" + json_data["compiledCode"]
+      with open(out_path, encoding="utf-8") as f:
+        compiled_code = f.read()
+
+      code = HEADER + "\n" + compiled_code
       for code_statement in remove:
           code = code.replace(code_statement, "")
 
@@ -346,13 +313,10 @@ class Gen_compressed(threading.Thread):
 \\*/""")
       code = re.sub(LICENSE, r"\n// \1  Apache License 2.0", code)
 
-      stats = json_data["statistics"]
-      original_b = stats["originalSize"]
-      compressed_b = stats["compressedSize"]
+      compressed_b = len(code.encode("utf-8"))
       if original_b > 0 and compressed_b > 0:
-        f = open(target_filename, "w")
-        f.write(code)
-        f.close()
+        with open(target_filename, "w", encoding="utf-8") as f:
+          f.write(code)
 
         original_kb = int(original_b / 1024 + 0.5)
         compressed_kb = int(compressed_b / 1024 + 0.5)
@@ -362,6 +326,8 @@ class Gen_compressed(threading.Thread):
             original_kb, compressed_kb, ratio))
       else:
         print("UNKNOWN ERROR")
+    finally:
+      shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 class Gen_langfiles(threading.Thread):
@@ -398,7 +364,7 @@ class Gen_langfiles(threading.Thread):
                       ["en.json", "qqq.json", "synonyms.json"]]):
       try:
         subprocess.check_call([
-            "python",
+            sys.executable,
             os.path.join("i18n", "js_to_json.py"),
             "--input_file", "msg/messages.js",
             "--output_dir", "msg/json/",
@@ -415,7 +381,7 @@ class Gen_langfiles(threading.Thread):
     try:
       # Use create_messages.py to create .js files from .json files.
       cmd = [
-          "python",
+          sys.executable,
           os.path.join("i18n", "create_messages.py"),
           "--source_lang_file", os.path.join("msg", "json", "en.json"),
           "--source_synonym_file", os.path.join("msg", "json", "synonyms.json"),
@@ -455,7 +421,7 @@ class Gen_langfiles(threading.Thread):
                        "synonyms_ardublockly.json"]]):
       try:
         subprocess.check_call([
-            "python",
+            sys.executable,
             os.path.join("i18n", "js_to_json.py"),
             "--author", "carlosperate",
             "--input_file", "msg/messages_ardublockly.js",
@@ -469,7 +435,7 @@ class Gen_langfiles(threading.Thread):
     try:
       # Use create_messages.py to attach _ardublockly.json strings to .js files
       cmd = [
-          "python",
+          sys.executable,
           os.path.join("i18n", "create_messages.py"),
           "--source_lang_file", os.path.join("msg","json",
                                              "en_ardublockly.json"),
@@ -520,8 +486,11 @@ if __name__ == "__main__":
 https://developers.google.com/blockly/hacking/closure""")
     sys.exit(1)
 
-  search_paths = calcdeps.ExpandDirectories(
-      ["core", os.path.join(os.path.pardir, "closure-library")])
+  # calcdeps.ExpandDirectories() returns a map() object under Python 3
+  # (it was a list under the Python 2 this vendored script targeted);
+  # materialize it since CalculateDependencies() concatenates it with a list.
+  search_paths = list(calcdeps.ExpandDirectories(
+      ["core", os.path.join(os.path.pardir, "closure-library")]))
 
   # Run both tasks in parallel threads.
   # Uncompressed is limited by processor speed.

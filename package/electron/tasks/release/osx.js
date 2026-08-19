@@ -1,7 +1,6 @@
 'use strict';
 
 var Q = require('q');
-var gulpUtil = require('gulp-util');
 var jetpack = require('fs-jetpack');
 var asar = require('asar');
 var utils = require('../utils');
@@ -91,7 +90,7 @@ var signApp = function () {
     var identity = utils.getSigningId();
     if (identity) {
         var cmd = 'codesign --deep --force --sign "' + identity + '" "' + finalAppDir.path() + '"';
-        gulpUtil.log('Signing with:', cmd);
+        console.log('Signing with:', cmd);
         return Q.nfcall(child_process.exec, cmd);
     } else {
         return new Q();
@@ -117,7 +116,7 @@ var packToDmgFile = function () {
     // Delete DMG file with this name if already exists
     releasesDir.remove(dmgName);
 
-    gulpUtil.log('Packaging to DMG file... (' + dmgName + ')');
+    console.log('Packaging to DMG file... (' + dmgName + ')');
 
     var readyDmgPath = releasesDir.path(dmgName);
     appdmg({
@@ -128,7 +127,7 @@ var packToDmgFile = function () {
         console.error(err);
     })
     .on('finish', function () {
-        gulpUtil.log('DMG file ready!', readyDmgPath);
+        console.log('DMG file ready!', readyDmgPath);
         deferred.resolve();
     });
 
@@ -139,7 +138,7 @@ var copyExecFolder = function () {
     // Because the python build file packs the entire arduexe folder as an app
     // package with its respective 'Contents' folder, we want to copy that data
     var finalAppContentDir = finalAppDir.dir('Contents');
-    gulpUtil.log('Copying from ' + finalAppDir.path() + ' ' +
+    console.log('Copying from ' + finalAppDir.path() + ' ' +
                  'folder: '+ finalAppContentDir.path());
     finalAppDir.copy(finalAppContentDir.cwd(), ardublocklyProjectDir.cwd(), { overwrite: true });
     return new Q();
