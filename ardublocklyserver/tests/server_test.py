@@ -30,7 +30,10 @@ from ardublocklyserver.compilersettings import ServerCompilerSettings
 
 settings = None
 document_root = None
-IP = 'localhost'
+# Explicit IPv4 loopback, not 'localhost' - which some CI runners (notably
+# macOS) resolve to the IPv6 loopback first, so the client's connection
+# attempt targets a different address than the one the server bound to.
+IP = '127.0.0.1'
 PORT = 8000
 
 
