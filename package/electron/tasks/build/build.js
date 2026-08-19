@@ -27,9 +27,10 @@ var paths = {
 // Tasks
 // -------------------------------------
 
-gulp.task('clean', function () {
+var cleanTask = function () {
     return destDir.dirAsync('.', { empty: true });
-});
+};
+gulp.task('clean', cleanTask);
 
 
 var copyTask = function () {
@@ -38,7 +39,7 @@ var copyTask = function () {
             matching: paths.copyFromAppDir
         });
 };
-gulp.task('copy', ['clean'], copyTask);
+gulp.task('copy', copyTask);
 gulp.task('copy-watch', copyTask);
 
 
@@ -52,10 +53,10 @@ var bundleApplication = function () {
 var bundleTask = function () {
     return bundleApplication();
 };
-gulp.task('bundle', ['clean'], bundleTask);
+gulp.task('bundle', bundleTask);
 gulp.task('bundle-watch', bundleTask);
 
-gulp.task('finalize', ['clean'], function () {
+var finalizeTask = function (done) {
     var manifest = srcDir.read('package.json', 'json');
 
     // Add "dev" or "test" suffix to name, so Electron will write all data
@@ -76,7 +77,9 @@ gulp.task('finalize', ['clean'], function () {
     manifest.env = projectDir.read('config/env_' + utils.getEnvName() + '.json', 'json');
 
     destDir.write('package.json', manifest);
-});
+    done();
+};
+gulp.task('finalize', finalizeTask);
 
 
 gulp.task('watch', function () {
@@ -89,4 +92,5 @@ gulp.task('watch', function () {
 });
 
 
-gulp.task('build', ['bundle', 'copy', 'finalize']);
+gulp.task('build', gulp.series(cleanTask,
+    gulp.parallel(bundleTask, copyTask, finalizeTask)));

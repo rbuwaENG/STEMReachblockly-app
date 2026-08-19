@@ -1,18 +1,18 @@
-# Ardublockly Electron project
-This is the Ardublockly Electron project for generating a cross-platform executable chromium window.
+# STEMReach Blockly Electron project
+This is the STEMReach Blockly Electron project for generating a cross-platform executable chromium window.
 
 Electron is a framework that allows cross-platform desktop applications
 using JavaScript, HTML and CSS. It is based on [io.js](http://iojs.org) and
 [Chromium](http://www.chromium.org) and is used in the [Atom
 editor](https://github.com/atom/atom).
 
-This project is based on the excellent [electron-boilerplate](https://github.com/szwacz/electron-boilerplate) by [Jakub Szwacz](https://github.com/szwacz).
+This project is based on the excellent [electron-boilerplate](https://github.com/szwacz/electron-boilerplate) by [Jakub Szwacz](https://github.com/szwacz), via [Ardublockly](https://github.com/carlosperate/ardublockly) by carlosperate.
 
 
 ## Quick start
 The only software installation required for this project is [Node.js](https://nodejs.org).
 
-To run, execute these commands from the Ardublockly project root directory:
+To run, execute these commands from the STEMReach Blockly project root directory:
 
 ```
 cd package/electron
@@ -24,7 +24,7 @@ This will download the Electron runtime, and install all other dependencies from
 
 
 ## Building
-To build a ready for distribution application use the command from the Ardublockly project root directory:
+To build a ready for distribution application use the command from the STEMReach Blockly project root directory:
 
 ```
 cd package/electron
@@ -38,13 +38,15 @@ You can create Windows installer only when running on Windows, the same is true 
 
 ## License
 
-The original boilerplate by Jakub Szwacz is release under the following license. All modifications to the boilerplate code adhere to this license and are copyright of carlosperate.
+The original boilerplate by Jakub Szwacz is release under the following license. All modifications to the boilerplate code adhere to this license and are copyright of carlosperate and STEMreach.
 
 The MIT License (MIT)
 
 Copyright (c) 2015 Jakub Szwacz
 
 Copyright (c) 2015 carlosperate https://github.com/carlosperate/
+
+Copyright (c) 2026 STEMreach and/or its affiliated companies
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

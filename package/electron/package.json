@@ -3,9 +3,8 @@
     "asar": "^0.11.0",
     "electron-prebuilt": "~1.2.0",
     "fs-jetpack": "^0.9.0",
-    "gulp": "^3.9.0",
+    "gulp": "^4.0.2",
     "gulp-batch": "^1.0.5",
-    "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
     "q": "^1.4.1",
     "rollup": "^0.26.3",
@@ -23,9 +22,9 @@
   },
   "repository" : {
     "type" : "git",
-    "url" : "https://github.com/carlosperate/ardublockly.git"
+    "url" : "https://github.com/rbuwaENG/STEMReachblockly-app.git"
   },
   "bugs" : {
-    "url" : "https://github.com/carlosperate/ardublockly/issues"
+    "url" : "https://github.com/rbuwaENG/STEMReachblockly-app/issues"
   }
 }
