@@ -33,7 +33,12 @@ jobs:
         include:
           - os: windows-latest
             platform_arg: windows
-          - os: macos-latest
+          # macos-latest runners are Apple Silicon (arm64); electron-prebuilt
+          # 1.2.x (this app's ancient Electron pin) never published an
+          # arm64 macOS build, so it 404s trying to download one. Pinned to
+          # macos-13 (Intel) until the Electron toolchain itself is
+          # upgraded past that architecture gap.
+          - os: macos-13
             platform_arg: mac
           - os: ubuntu-latest
             platform_arg: linux
