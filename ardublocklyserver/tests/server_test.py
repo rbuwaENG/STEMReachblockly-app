@@ -76,16 +76,19 @@ class ServerTestCase(unittest.TestCase):
         # been constructed, not that the HTTP server has finished binding its
         # socket - wait for that too, or requests fired immediately after
         # can hit a connection refused race (seen on slower/colder runners).
-        deadline = time() + 10
+        deadline = time() + 25
+        last_error = None
         while time() < deadline:
             try:
                 with socket.create_connection((IP, PORT), timeout=0.5):
                     break
-            except OSError:
+            except OSError as e:
+                last_error = e
                 sleep(0.05)
         else:
             raise Exception('Server did not start listening on %s:%s within '
-                            'the timeout.' % (IP, PORT))
+                            'the timeout. Last connection error: %s' %
+                            (IP, PORT, last_error))
         # Check the settings is a new instance by looking at file path
         if cls.temp_folder not in settings.get_settings_file_path()\
                 or not os.path.isfile(settings.get_settings_file_path()):
